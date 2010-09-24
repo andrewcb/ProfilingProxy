@@ -1,4 +1,3 @@
-
 ProfilingProxy is a wrapper class for profiling method calls of
 objects. A ProfilingProxy object is created with an existing object
 as an argument. It wraps the given object's attributes and method
@@ -100,4 +99,21 @@ Example:
     a took 1.119410 seconds over 1 calls
     b took 0.518321 seconds over 10 calls
     c took 0.999830 seconds over 2 calls
-                    
+                   
+Side effects:
+
+    ProfilingProxy adds some overhead to method calls on the wrapped object; 
+    it should be disabled in a production environment.
+
+    A ProfilingProxy object reserves any attribute names beginning with 
+    _profile; if your object class has any such attributes, either it or 
+    ProfilingProxy may fail to work correctly.
+
+    Code which relies on object introspection or instanceof may not work 
+    correctly for objects wrapped with ProfilingProxy.
+
+
+Author:
+    Andrew C. Bulhak
+
+This code is copyright 2008 The pH Group Ltd., and has been released as free software under the GNU General Public Licence 2.0 or higher.

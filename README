@@ -1,0 +1,103 @@
+
+ProfilingProxy is a wrapper class for profiling method calls of
+objects. A ProfilingProxy object is created with an existing object
+as an argument. It wraps the given object's attributes and method
+calls. When methods are called through the ProfilingProxy, it times
+how long method execution took. If an object method calls another
+method, ProfilingProxy keeps track of this, and can produce a
+breakdown of the total call time in or under a function by functions
+called.
+
+ProfilingProxy keeps one set of statistics for each class it is
+initialised with. As such, different instances of a class created
+with ProfilingProxy within the same Python interpreter will share
+a set of statistics, which may be retrieved from any instance of
+the class. ProfilingProxy may be used for profiling any number of
+classes at the same time.
+
+
+ProfilingProxy Methods:
+
+ProfilingProxy(obj)
+    Creates a ProfilingProxy object wrapping obj. The created object
+    appears to have all the methods and attributes of obj and should
+    (in most cases) behave as a drop-in replacement for the object.
+
+_profiledata()
+    Returns the ClassProfileData object for the class of the object
+    in a ProspectProxy. The returned object can then be queried to
+    retrieve profiling statistics.
+
+ClassProfileData Methods:
+
+reset()
+    Clears the statistics for this class.
+
+getFlatStats()
+    Returns an iterable sequence of dictionaries, each representing
+    an item from the 'flat' statistics, i.e., a list of what total
+    time each method took (including time spent within methods it
+    called). Each entry is a dictionary with the following keys:
+
+        * method - the method name
+        * calls - the number of times this method was called
+        * totaltime - the number of seconds in total spent within calls to this method (or any called by it); this is a float
+        * avgtime - the average number of seconds spent in any one call to this method
+
+dumpflat()
+    Prints the flat statistics to stdout in a standard format.
+getTreeStats()
+    Returns an iterable sequence of dictionaries, each representing
+    an item from the tree statistics. Each line represents a function
+    at one level of the tree; lines of a deeper level are returned
+    immediately following their caller. Each line is represented
+    as a dictionary with the following keys:
+
+        * level - the level of this cal. (Hint: using this as an indentation width will give you a nice display.)
+        * method - the method name. If this is '(body)', then this line represents the time spent in the calling function's code outside of any other method calls.
+        * calls - the number of times this method was called within this context (i.e., by the parent calling function, which was called by its parent, and so on)
+        * time - the number of seconds in total spent within calls to this method (or any called by it), within this context; this is a float
+        * percent - the percentage of the caller's total time which was spent within this method call.
+
+dumptree()
+    Prints the tree statistics to stdout in a standard format. 
+
+Example:
+
+    >>> from profilingproxy import ProfilingProxy
+    >>> import time
+    
+    # Define a class we want to profile
+    >>> class spam(object):
+    ...    def a(self):
+    ...        for i in range(10):
+    ...            self.b()
+    ...        time.sleep(0.1)
+    ...        self.c()
+    ...    def b(self):
+    ...        time.sleep(0.05)
+    ...    def c(self):
+    ...        time.sleep(0.5)
+    
+    # create and use some objects
+    >>> spam1 = ProfilingProxy(spam)
+    >>> spam1.a()
+    
+    >>> spam2 = ProfilingProxy(spam)
+    >>> spam2.c()
+    
+    # now get stats
+    >>> profile = spam1._profiledata()
+    >>> profile.dumptree()
+    Method                                   Time   #   %
+    a                                        1.12   1  69.1%
+      b                                      0.52  10  46.3%
+      c                                      0.50   1  44.7%
+      (body)                                 0.10   1  9.0%
+    c                                        0.50   1  30.9%
+    >>> for line in profile.getFlatStats():
+    ...    print "%(method)s took %(totaltime)f seconds over %(calls)d calls"%line
+    a took 1.119410 seconds over 1 calls
+    b took 0.518321 seconds over 10 calls
+    c took 0.999830 seconds over 2 calls
+                    

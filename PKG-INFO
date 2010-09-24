@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: ProfilingProxy
+Version: 1.0
+Summary: Proxy class for profiling Python object method calls
+Home-page: http://dev.null.org/code/ProfilingProxy/
+Author: Andrew C. Bulhak
+Author-email: UNKNOWN
+License: GPL2
+Description: Proxy class for profiling Python object method calls
+Platform: UNKNOWN
